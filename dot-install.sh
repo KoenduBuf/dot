@@ -1,7 +1,13 @@
 #!/bin/bash
 
+case "$1" in
+    "lite") INSTALL=1 ;;
+    "base") INSTALL=2 ;;
+    "desk") INSTALL=3 ;;
+    * ) INSTALL=0 ;;
+esac
 
-if [ -z "$1" ]; then
+if [ ! $INSTALL -ge 1 ]; then
     echo "Please select what you want to install:"
     echo ""
     echo "lite - Installs some stuff that is useful all the time when in"
@@ -18,35 +24,40 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-add_to_rc() {
-    if [ -f "$HOME/.bashrc" ]; then
-        if ! grep -Fxq "$1" "$HOME/.bashrc"; then
-            echo "$1" >> "$HOME/.bashrc"
-        fi
-    fi
-    if [ -f "$HOME/.zshrc" ]; then
-        if ! grep -Fxq "$1" "$HOME/.zshrc"; then
-            echo "$1" >> "$HOME/.zshrc"
-        fi
-    fi
-}
 
+# Remember where the scripts are, and make them executable
 export KDOT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 echo "Installing 'dot'. Files based in '$KDOT_DIR'"
 chmod +x $KDOT_DIR/*
 
-if [ "$1" == "lite" ] || [ "$1" == "base" ] || [ "$1" == "desk" ]; then
-    add_to_rc "# Install '$1' of kdot files:"
-    add_to_rc "export KDOT_DIR=\"$KDOT_DIR\""
-    add_to_rc ". '$KDOT_DIR/dot-scripts/functions-lite.sh'"
+
+# Add sourcing the '.dotrc' to both bashrc and zshrc
+SOURCELINE="[ -f \"\$HOME/.dotrc\" ] && . \"\$HOME/.dotrc\""
+if [ -f "$HOME/.bashrc" ]; then
+    if ! grep -Fxq "$SOURCELINE" "$HOME/.bashrc"; then
+        echo "$SOURCELINE" >> "$HOME/.bashrc"
+    fi
+fi
+if [ -f "$HOME/.zshrc" ]; then
+    if ! grep -Fxq "$SOURCELINE" "$HOME/.zshrc"; then
+        echo "$SOURCELINE" >> "$HOME/.zshrc"
+    fi
 fi
 
-if [ "$1" == "base" ] || [ "$1" == "desk" ]; then
-    add_to_rc ". '$KDOT_DIR/dot-scripts/functions-base.sh'"
+
+# For each install, add the required data to .dotrc
+if [ $INSTALL -ge 1 ]; then
+    echo "# Install '$1' of kdot files:" > "$HOME/.dotrc"
+    echo "export KDOT_DIR=\"$KDOT_DIR\"" >> "$HOME/.dotrc"
+    echo ". '$KDOT_DIR/dot-scripts/functions-lite.sh'" >> "$HOME/.dotrc"
 fi
 
-if [ "$1" == "desk" ]; then
-    add_to_rc ". '$KDOT_DIR/dot-scripts/functions-desk.sh'"
+if [ $INSTALL -ge 2 ]; then
+    echo ". '$KDOT_DIR/dot-scripts/functions-base.sh'" >> "$HOME/.dotrc"
+fi
+
+if [ $INSTALL -ge 3 ]; then
+    echo ". '$KDOT_DIR/dot-scripts/functions-desk.sh'" >> "$HOME/.dotrc"
 fi
 
 

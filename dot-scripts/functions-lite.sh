@@ -30,5 +30,5 @@ alias sudo='sudo '
 # Some broader things
 
 . "$KDOT_DIR/dot-scripts/util-networking.sh"
-. "$KDOT_DIR/dot-scripts/util-general.sh"
+. "$KDOT_DIR/dot-scripts/util-files.sh"
 . "$KDOT_DIR/dot-scripts/util-develop.sh"
